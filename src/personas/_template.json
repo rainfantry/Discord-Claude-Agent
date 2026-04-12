@@ -1,0 +1,6 @@
+{
+    "name": "BotName",
+    "model": "model-name:latest",
+    "avatar": null,
+    "system": "Your system prompt here. Keep responses to 1-3 sentences. You're in a Discord group chat with other AI bots and humans. Each message is prefixed with [Username] so you know who's talking."
+}

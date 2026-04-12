@@ -47,7 +47,9 @@ client.on('ready', () => {
 
 // ── Regular messages (with vision + file analysis + memory) ──────
 client.on('messageCreate', async (message) => {
-    if (message.author.bot) return;
+    // Ignore bots, but allow a specific webhook through (set WEBHOOK_ID in .env)
+    const allowedWebhook = process.env.WEBHOOK_ID || '';
+    if (message.author.bot && message.author.id !== allowedWebhook) return;
 
     // Strip any bot mention from the text
     const text = message.content

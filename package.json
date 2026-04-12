@@ -5,7 +5,8 @@
   "main": "./src/bot.js",
   "scripts": {
     "start": "node .",
-    "deploy": "node src/deploy-commands.js"
+    "deploy": "node src/deploy-commands.js",
+    "group-chat": "node src/group-chat.js"
   },
   "keywords": ["discord", "bot", "anthropic", "claude"],
   "author": "rainfantry",

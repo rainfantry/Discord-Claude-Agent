@@ -61,7 +61,7 @@ const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_BOT_TOKEN)
         console.log(`Registering ${commands.length} slash commands...`);
         // Register globally (takes up to 1 hour to propagate)
         await rest.put(
-            Routes.applicationCommands('1492954219123052615'),
+            Routes.applicationCommands(process.env.APP_ID),
             { body: commands },
         );
         console.log('Slash commands registered successfully!');
