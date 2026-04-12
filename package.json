@@ -1,0 +1,19 @@
+{
+  "name": "discord-claude-agent",
+  "version": "1.0.0",
+  "description": "Discord bot powered by Anthropic API",
+  "main": "./src/bot.js",
+  "scripts": {
+    "start": "node .",
+    "deploy": "node src/deploy-commands.js"
+  },
+  "keywords": ["discord", "bot", "anthropic", "claude"],
+  "author": "rainfantry",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.88.0",
+    "axios": "^1.6.3",
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1"
+  }
+}
