@@ -1,17 +1,17 @@
 # Discord-Claude-Agent
 
-A Discord bot powered by the Anthropic API (Claude). Responds to messages in a channel with a customizable personality, supports image analysis, file reading, slash commands, web search, conversation memory, and multi-user tracking.
+A Discord bot powered by the Anthropic API. Responds to every message in a channel with a customizable personality. Supports image analysis, file reading, slash commands, web search, conversation memory, and multi-user tracking.
 
 ## Features
 
 - **Conversation Memory** — remembers the last 20 messages per channel
-- **Multi-User Tracking** — prefixes each message with the sender's username so the bot knows who's who
-- **Vision** — analyze images posted in chat (base64 encoding, Claude vision API)
+- **Multi-User Tracking** — each message is tagged with the sender's username so the bot tracks who's who
+- **Vision** — analyze images posted in chat (base64 encoding → vision API)
 - **File Analysis** — reads text-based file attachments (code, CSV, logs, etc.)
-- **Slash Commands** — `/ask`, `/roast`, `/search`, `/summarize`, `/analyze`, `/clear`
-- **Web Search** — uses Claude's built-in web search tool
-- **Rich Embeds** — search results and summaries displayed as Discord embeds
-- **Message Splitting** — auto-splits long responses to fit Discord's 2000 char limit
+- **Slash Commands** — 6 built-in commands (see below)
+- **Web Search** — built-in web search tool with results in rich embeds
+- **Rich Embeds** — search results and summaries rendered as Discord embeds
+- **Message Splitting** — auto-splits long responses to stay within Discord's 2000 char limit
 
 ## Setup
 
@@ -49,13 +49,13 @@ ANTHROPIC_API_KEY='sk-ant-your-key-here'
 
 ### Register Slash Commands
 
-Run once (or whenever you change commands):
+Run once (or whenever you add/change commands):
 
 ```bash
 node src/deploy-commands.js
 ```
 
-> Edit `deploy-commands.js` line 63 and replace the application ID with your own.
+> Edit `deploy-commands.js` and replace the application ID on line 63 with your own.
 
 ### Run
 
@@ -63,43 +63,43 @@ node src/deploy-commands.js
 node .
 ```
 
-Bot responds to every message in channels it can see.
-
-## Project Structure
-
-```
-src/
-  bot.js              — Discord client, event handlers, slash commands
-  claude.js           — Anthropic API wrapper, memory, vision, search
-  deploy-commands.js  — One-time slash command registration
-package.json
-.env                  — Secrets (gitignored)
-```
-
-## Customization
-
-### System Prompt
-
-Edit `SYSTEM_PROMPT` in `src/claude.js` to change the bot's personality.
-
-### Per-User Behavior
-
-Add special rules for specific users by checking the `[Username]` prefix in the system prompt. See the example in `claude.js`.
-
-### Model
-
-Change the `model` field in `claude.js` to swap models (e.g. `claude-haiku-4-20250514` for cheaper/faster).
+Bot responds to every message in channels it has access to.
 
 ## Slash Commands
 
 | Command | Description |
 |---------|-------------|
 | `/ask <question>` | Ask the bot a question |
-| `/roast [@user]` | Personalized roast |
-| `/search <query>` | Web search with embed results |
-| `/summarize [count]` | Summarize recent channel messages |
-| `/analyze <image> [question]` | Analyze an uploaded image |
-| `/clear` | Wipe bot memory for this channel |
+| `/roast [@user]` | Get a personalized roast (targets yourself if no user specified) |
+| `/search <query>` | Search the web, results displayed in a rich embed |
+| `/summarize [count]` | Summarize the last N messages in the channel (default 20, max 50) |
+| `/analyze <image> [question]` | Upload an image for analysis, optionally ask a specific question about it |
+| `/clear` | Wipe the bot's conversation memory for the current channel |
+
+## Project Structure
+
+```
+src/
+  bot.js              — Discord client, event handlers, slash command routing
+  claude.js           — API wrapper, conversation memory, vision, web search
+  deploy-commands.js  — One-time slash command registration with Discord
+package.json
+.env                  — Your tokens (gitignored)
+```
+
+## Customization
+
+### Personality
+
+Edit the `SYSTEM_PROMPT` constant in `src/claude.js`. The default personality is a warm but blunt older-brother figure who gives real life advice with casual profanity — supportive by default, brutally honest when needed.
+
+### Per-User Rules
+
+Add special behavior for specific users by referencing their `[Username]` prefix in the system prompt.
+
+### Model
+
+Change the `model` field in `claude.js` to use a different model (e.g. `claude-haiku-4-20250514` for cheaper/faster responses).
 
 ## License
 
