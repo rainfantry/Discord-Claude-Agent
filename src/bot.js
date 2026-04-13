@@ -46,10 +46,17 @@ client.on('ready', () => {
 });
 
 // ── Regular messages (with vision + file analysis + memory) ──────
+const processingMessages = new Set(); // Prevent double-processing
+
 client.on('messageCreate', async (message) => {
-    // Ignore bots, but allow a specific webhook through (set WEBHOOK_ID in .env)
-    const allowedWebhook = process.env.WEBHOOK_ID || '';
-    if (message.author.bot && message.author.id !== allowedWebhook) return;
+    // Ignore bots, but allow specific webhooks through (comma-separated WEBHOOK_ID in .env)
+    const allowedWebhooks = (process.env.WEBHOOK_ID || '').split(',').map(s => s.trim()).filter(Boolean);
+    if (message.author.bot && !allowedWebhooks.includes(message.author.id)) return;
+
+    // Prevent processing the same message twice
+    if (processingMessages.has(message.id)) return;
+    processingMessages.add(message.id);
+    setTimeout(() => processingMessages.delete(message.id), 60000);
 
     // Strip any bot mention from the text
     const text = message.content

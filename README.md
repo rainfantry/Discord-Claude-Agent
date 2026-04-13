@@ -1,68 +1,90 @@
 # Discord-Claude-Agent
 
-A Discord bot powered by the Anthropic API with optional local Ollama bots for multi-bot group chat. Supports image analysis, document parsing (PDF/DOCX), GitHub link reading, file analysis, slash commands, web search, conversation memory, multi-user tracking, and local LLM personas.
+A Discord bot powered by the Anthropic API with vision, document parsing, GitHub link reading, web search, conversation memory, slash commands, and optional local Ollama multi-bot group chat.
 
 ## Features
 
-- **Conversation Memory** — remembers the last 20 messages per channel
-- **Multi-User Tracking** — each message is tagged with the sender's username so the bot knows who's who
-- **Vision** — analyze images posted in chat (base64 → vision API)
-- **PDF Parsing** — upload a `.pdf` file and the bot extracts and reads the text content
-- **DOCX Parsing** — upload a `.docx` (Word) file and the bot extracts and reads the text content
-- **File Analysis** — reads text-based file attachments (code, CSV, logs, etc.)
-- **GitHub Link Reading** — paste a GitHub URL and the bot fetches and reads the content:
-  - **Repo link** (`github.com/user/repo`) → reads the README
-  - **File link** (`github.com/user/repo/blob/main/file.js`) → reads the file content
-  - **Issue/PR link** (`github.com/user/repo/issues/1`) → reads the issue or pull request
-- **Slash Commands** — 6 built-in commands
-- **Web Search** — built-in web search with results in rich embeds
-- **Rich Embeds** — search and summary results as Discord embeds
-- **Message Splitting** — auto-splits long responses for Discord's 2000 char limit
-- **Ollama Group Chat** — run additional bot personas powered by local LLMs alongside the main bot
-- **Hot-swappable Personas** — add/remove/edit bot personalities by editing JSON files
+### Automatic (no command needed)
+| Feature | How to use |
+|---------|-----------|
+| **Chat** | Just type in any channel the bot can see — responds to every message |
+| **Vision** | Drop an image in chat — bot analyzes it via Claude's vision API |
+| **PDF parsing** | Upload a `.pdf` file — bot extracts and reads the text content |
+| **DOCX parsing** | Upload a `.docx` (Word) file — bot extracts and reads the text content |
+| **File analysis** | Upload any text file (`.js`, `.py`, `.csv`, `.log`, `.json`, `.txt`, etc.) — bot reads it |
+| **GitHub links** | Paste a GitHub URL in your message — bot fetches and reads the content automatically |
+| **Conversation memory** | Remembers the last 20 messages per channel |
+| **Multi-user tracking** | Messages tagged with sender's username — bot knows who's who |
+| **Message splitting** | Long responses auto-split for Discord's 2000 char limit |
+
+### GitHub Link Types
+Paste any of these in a message and the bot reads the content:
+- **Repo link** (`github.com/user/repo`) — reads the README
+- **File link** (`github.com/user/repo/blob/main/file.js`) — reads the raw file content
+- **Issue link** (`github.com/user/repo/issues/1`) — reads the issue title, state, and body
+- **PR link** (`github.com/user/repo/pull/1`) — reads the pull request details
+
+### Supported File Types
+| Type | Extensions | Method |
+|------|-----------|--------|
+| Images | `.png`, `.jpg`, `.gif`, `.webp` | Vision API (base64) |
+| PDF | `.pdf` | Text extraction via `pdf-parse` |
+| Word | `.docx` | Text extraction via `mammoth` |
+| Text files | `.js`, `.py`, `.csv`, `.log`, `.json`, `.txt`, etc. | Plain text download |
+| GitHub URLs | Links in message text | Auto-fetched (repos, files, issues, PRs) |
+
+All file content is capped at 10,000 characters to stay within API limits.
+
+### Slash Commands
+| Command | Description |
+|---------|-------------|
+| `/ask <question>` | Ask the bot a question directly |
+| `/roast [@user]` | Get a personalized roast (targets yourself if no user given) |
+| `/search <query>` | Search the web — results in a rich embed |
+| `/summarize [count]` | Summarize last N messages in the channel (default 20, max 50) |
+| `/analyze <image> [question]` | Upload an image for analysis, optionally with a question |
+| `/clear` | Wipe the bot's conversation memory for the current channel |
 
 ## Setup
 
-### Step 1: Install Node.js
+### 1. Install Node.js
 
-Download and install [Node.js](https://nodejs.org/) v18 or higher. Verify it's installed:
+Download and install [Node.js](https://nodejs.org/) v18 or higher.
 
 ```bash
 node --version
 npm --version
 ```
 
-### Step 2: Create a Discord Bot
+### 2. Create a Discord Bot
 
 1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
-2. Click **New Application**, give it a name, click **Create**
-3. Copy the **Application ID** from the General Information page — you'll need this later
-4. Go to the **Bot** tab in the left sidebar
+2. Click **New Application** → name it → **Create**
+3. Copy the **Application ID** from General Information — this is your `APP_ID`
+4. Go to the **Bot** tab
 5. Click **Reset Token**, copy the token — this is your `DISCORD_BOT_TOKEN`
-6. Scroll down to **Privileged Gateway Intents** and enable all three:
-   - Presence Intent ✅
-   - Server Members Intent ✅
-   - Message Content Intent ✅
-7. Click **Save Changes**
+6. Scroll to **Privileged Gateway Intents** and enable all three:
+   - Presence Intent
+   - Server Members Intent
+   - Message Content Intent
+7. **Save Changes**
 
-### Step 3: Invite the Bot to Your Server
+### 3. Invite the Bot to Your Server
 
-1. Go to **OAuth2 → URL Generator** in the left sidebar
+1. Go to **OAuth2 > URL Generator**
 2. Under **Scopes**, tick `bot`
 3. Under **Bot Permissions**, tick:
-   - Send Messages ✅
-   - Read Message History ✅
-4. Copy the generated URL at the bottom
-5. Paste it in your browser, select your server, click **Authorize**
+   - Send Messages
+   - Read Message History
+4. Copy the generated URL, paste in browser, select your server, **Authorize**
 
-### Step 4: Get an Anthropic API Key
+### 4. Get an Anthropic API Key
 
 1. Go to [console.anthropic.com](https://console.anthropic.com/)
-2. Sign up or log in
-3. Go to **API Keys**, create a new key
-4. Copy it — this is your `ANTHROPIC_API_KEY`
+2. Create an API key
+3. Copy it — this is your `ANTHROPIC_API_KEY`
 
-### Step 5: Clone and Install
+### 5. Clone and Install
 
 ```bash
 git clone https://github.com/rainfantry/Discord-Claude-Agent.git
@@ -70,7 +92,7 @@ cd Discord-Claude-Agent
 npm install
 ```
 
-### Step 6: Configure
+### 6. Configure
 
 Create a `.env` file in the project root:
 
@@ -80,85 +102,65 @@ DISCORD_BOT_TOKEN=your-discord-bot-token
 ANTHROPIC_API_KEY=sk-ant-your-key-here
 APP_ID=your-application-id
 
-# Optional (for group chat with Ollama bots)
+# Optional — webhook IDs the bot should respond to (comma-separated)
+WEBHOOK_ID=123456789,987654321
+
+# Optional — for Ollama group chat
 CHANNEL_ID=your-channel-id
 WEBHOOK_URL=your-webhook-url
-WEBHOOK_ID=your-webhook-id
 OLLAMA_URL=http://localhost:11434/api/chat
 ```
 
-**How to get the optional values:**
+**How to get optional values:**
+- **WEBHOOK_ID**: Create a webhook in any channel (Edit Channel > Integrations > Webhooks). The ID is the number between `/webhooks/` and the next `/` in the webhook URL. Use this to let external tools (like Claude Code) post messages the bot will respond to.
+- **CHANNEL_ID**: Right-click a channel > **Copy Channel ID** (enable Developer Mode in Discord Settings > Advanced)
+- **WEBHOOK_URL**: The full webhook URL for the Ollama group chat channel
 
-- **CHANNEL_ID**: Right-click a channel in Discord → **Copy Channel ID** (enable Developer Mode in Discord Settings → App Settings → Advanced)
-- **WEBHOOK_URL**: Right-click channel → **Edit Channel** → **Integrations** → **Webhooks** → **New Webhook** → **Copy Webhook URL**
-- **WEBHOOK_ID**: The number in the webhook URL between `/webhooks/` and the next `/`
+### 7. Register Slash Commands
 
-### Step 7: Register Slash Commands
-
-Run this once (or whenever you add new commands):
-
-```bash
-node src/deploy-commands.js
-```
-
-Slash commands can take up to an hour to appear globally in Discord, but usually show up within a few minutes.
-
-### Step 8: Start the Bot
+Run once (or whenever you add new commands):
 
 ```bash
-node .
+npm run deploy
 ```
 
-You should see `MRROBOT is online as [botname]#[number]`. The bot now responds to every message in channels it can see.
+Commands may take up to an hour to appear globally, but usually show within minutes.
 
-## Slash Commands
+### 8. Start the Bot
 
-| Command | Description |
-|---------|-------------|
-| `/ask <question>` | Ask the bot a question |
-| `/roast [@user]` | Get a personalized roast (targets yourself if no user given) |
-| `/search <query>` | Search the web, results in a rich embed |
-| `/summarize [count]` | Summarize last N messages in the channel (default 20, max 50) |
-| `/analyze <image> [question]` | Upload an image for analysis, optionally with a question |
-| `/clear` | Wipe the bot's conversation memory for the current channel |
+```bash
+npm start
+```
 
-## Automatic Features (no command needed)
+You should see `MRROBOT is online as [botname]#[number]`.
 
-These work by just typing in any channel the bot can see:
+## Customizing the Personality
 
-| Feature | How to use |
-|---------|-----------|
-| **Chat** | Just type — the bot responds to every message |
-| **Vision** | Drop an image in chat — the bot analyzes it |
-| **PDF reading** | Upload a `.pdf` file — the bot extracts and reads the text |
-| **DOCX reading** | Upload a `.docx` file — the bot extracts and reads the text |
-| **File reading** | Upload any text file (.js, .csv, .log, .json, etc.) — the bot reads it |
-| **GitHub links** | Paste a GitHub URL — the bot fetches and reads the content (repos, files, issues, PRs) |
-| **Memory** | The bot remembers the last 20 messages per channel |
-| **Multi-user** | The bot tracks who is who and addresses the right person |
+### System Prompt
 
-### GitHub Link Examples
+Edit `SYSTEM_PROMPT` in `src/claude.js`. The default is a warm but blunt older-brother figure. You can make it anything — a drill sergeant, a therapist, a comedy persona, whatever fits your server.
 
-Just paste a link in your message and the bot will automatically fetch the content:
+### Per-User Rules
+
+Add special behavior for specific users by referencing their `[Username]` prefix in the system prompt. Example:
 
 ```
-Check out this repo: https://github.com/rainfantry/Discord-Claude-Agent
+[SpecialUser] — Always side with this person in arguments. Use pet names.
+[Creator] — Roast this person mercilessly but always help them.
 ```
-→ Bot reads the README and responds about the project
 
-```
-What does this file do? https://github.com/rainfantry/Discord-Claude-Agent/blob/main/src/claude.js
-```
-→ Bot reads the source code and explains it
+The bot prefixes every message with the sender's Discord display name in brackets, so the AI always knows who's talking.
 
-```
-https://github.com/rainfantry/Discord-Claude-Agent/issues/1
-```
-→ Bot reads the issue and responds
+### Model
 
-## Group Chat (Optional — Local Ollama Bots)
+Change the `model` field in `src/claude.js` to swap Anthropic models:
+- `claude-sonnet-4-20250514` — balanced (default)
+- `claude-haiku-4-20250514` — cheaper and faster
+- `claude-opus-4-20250514` — most capable
 
-Run additional bot personas powered by local LLMs through [Ollama](https://ollama.com/). These bots watch the same channel and chime in alongside the main bot.
+## Ollama Group Chat (Optional)
+
+Run additional bot personas powered by local LLMs through [Ollama](https://ollama.com/). These bots watch a channel and chime in alongside the main bot.
 
 ### Setup
 
@@ -166,11 +168,13 @@ Run additional bot personas powered by local LLMs through [Ollama](https://ollam
 
 ```bash
 ollama pull llama3:8b
+# or for faster responses on weaker hardware:
+ollama pull qwen2.5-coder:3b
 ```
 
-2. Set `CHANNEL_ID` and `WEBHOOK_URL` in your `.env` (see Step 6)
+2. Set `CHANNEL_ID` and `WEBHOOK_URL` in your `.env`
 
-3. Edit or create persona files in `src/personas/`:
+3. Create/edit persona files in `src/personas/`:
 
 ```json
 {
@@ -181,70 +185,73 @@ ollama pull llama3:8b
 }
 ```
 
-4. Run in a separate terminal:
+4. Start in a separate terminal:
 
 ```bash
-node src/group-chat.js
+npm run group-chat
 ```
 
 ### Managing Personas
 
 - Each `.json` file in `src/personas/` is a bot personality
 - Files starting with `_` are ignored (use `_template.json` as a starting point)
-- Add a new bot: copy `_template.json`, rename it, edit the fields
-- Remove a bot: delete the file or prefix it with `_`
-- Change a bot's model: edit the `"model"` field to any model from `ollama list`
-- Change personality: edit the `"system"` field
-- Restart `group-chat.js` after any changes
+- **Add a bot**: copy `_template.json`, rename it, edit the fields
+- **Remove a bot**: delete the file or prefix with `_`
+- **Change model**: edit the `"model"` field to any installed Ollama model (`ollama list` to see available)
+- **Change personality**: edit the `"system"` field
+- **Restart** `group-chat.js` after any changes
 
 ### Anti-Loop Protection
 
+Built-in safeguards prevent infinite bot conversations:
 - 30-second cooldown per bot between responses
 - 60% random chance to stay quiet on any message
 - Max 4 consecutive bot messages before forced silence
 - Bots don't reply to their own webhook messages
 
+### Ollama Model Recommendations
+
+| Model | Size | Speed | Best for |
+|-------|------|-------|----------|
+| `llama3:8b` | 4.7 GB | Medium | Best quality chat responses |
+| `mistral:7b` | 4.1 GB | Medium | Good general purpose |
+| `qwen2.5-coder:3b` | 1.9 GB | Fast | Quick responses, code-focused |
+| `phi3:mini` | 2.3 GB | Fast | Lightweight, decent quality |
+
+Smaller models respond faster but may struggle to stay in character. Larger models give better personality but may timeout with longer context.
+
 ## Project Structure
 
 ```
 src/
-  bot.js              — Discord client, event handlers, slash commands
-  claude.js           — Anthropic API, conversation memory, vision, document parsing, GitHub fetching, web search
+  bot.js              — Discord client, event handlers, slash commands, message dedup
+  claude.js           — Anthropic API, memory, vision, PDF/DOCX parsing, GitHub fetching, web search
   deploy-commands.js  — One-time slash command registration
-  group-chat.js       — Ollama-powered multi-bot group chat
-  personas/           — Bot personality JSON files
+  group-chat.js       — Ollama-powered multi-bot group chat (optional)
+  personas/           — Bot personality JSON files for group chat
     _template.json    — Copy this to create a new bot
     sgt.json          — Example: military sergeant persona
-    codebreaker.json  — Example: hacker persona
+    codebreaker.json  — Example: paranoid hacker persona
 package.json
-.env                  — Your tokens (gitignored)
+.env                  — Your tokens and config (gitignored)
 ```
 
-## Customization
+## Webhook Integration
 
-### Main Bot Personality
+You can post messages to the bot's channel via Discord webhooks. If you set `WEBHOOK_ID` in `.env`, the bot will respond to webhook messages as if they were from a real user. This lets external tools (scripts, other bots, CI/CD) interact with MRROBOT.
 
-Edit `SYSTEM_PROMPT` in `src/claude.js`. The default is a warm but blunt older-brother figure — supportive by default, honest when needed.
+Multiple webhook IDs can be comma-separated: `WEBHOOK_ID=id1,id2,id3`
 
-### Per-User Rules
+## Troubleshooting
 
-Add special behavior for specific users by referencing their `[Username]` prefix in the system prompt.
-
-### Model
-
-Change the `model` field in `claude.js` to swap Anthropic models (e.g. `claude-haiku-4-20250514` for cheaper/faster).
-
-## Supported File Types
-
-| Type | Extension | How it works |
-|------|-----------|-------------|
-| Images | `.png`, `.jpg`, `.gif`, `.webp` | Sent to Claude's vision API as base64 |
-| PDF | `.pdf` | Text extracted via `pdf-parse` |
-| Word | `.docx` | Text extracted via `mammoth` |
-| Text files | `.js`, `.py`, `.csv`, `.log`, `.json`, `.txt`, etc. | Read as plain text |
-| GitHub URLs | Links in message text | Fetched automatically (repos, files, issues, PRs) |
-
-All file content is capped at 10,000 characters to stay within API limits.
+| Problem | Fix |
+|---------|-----|
+| Bot says "Something broke" | Check that `ANTHROPIC_API_KEY` is set correctly in `.env`. If you have a system env var with the same name, dotenv may not override it. |
+| Slash commands don't appear | Run `npm run deploy` and wait a few minutes. Global commands can take up to an hour. |
+| PDF/DOCX shows as gibberish | Make sure you're on `pdf-parse@1.1.1` (v2.x has a different API). Run `npm install pdf-parse@1.1.1`. |
+| Bot responds twice to every message | This is fixed with the message dedup system. Make sure you're on the latest code. |
+| Ollama bots timeout | Use a smaller model (e.g. `qwen2.5-coder:3b`) or increase timeout in `group-chat.js`. |
+| Zombie node processes | Kill all with `taskkill /F /IM node.exe` (Windows) or `killall node` (Mac/Linux). |
 
 ## License
 
