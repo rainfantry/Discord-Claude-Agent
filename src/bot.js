@@ -1,4 +1,4 @@
-require('dotenv/config');
+require('dotenv').config({ override: true });
 const { Client, IntentsBitField, EmbedBuilder, Events } = require('discord.js');
 const { chat, webSearch, summarize, clearHistory } = require('./claude.js');
 

@@ -1,13 +1,19 @@
 # Discord-Claude-Agent
 
-A Discord bot powered by the Anthropic API with optional local Ollama bots for multi-bot group chat. Supports image analysis, file reading, slash commands, web search, conversation memory, multi-user tracking, and local LLM personas.
+A Discord bot powered by the Anthropic API with optional local Ollama bots for multi-bot group chat. Supports image analysis, document parsing (PDF/DOCX), GitHub link reading, file analysis, slash commands, web search, conversation memory, multi-user tracking, and local LLM personas.
 
 ## Features
 
 - **Conversation Memory** — remembers the last 20 messages per channel
 - **Multi-User Tracking** — each message is tagged with the sender's username so the bot knows who's who
 - **Vision** — analyze images posted in chat (base64 → vision API)
+- **PDF Parsing** — upload a `.pdf` file and the bot extracts and reads the text content
+- **DOCX Parsing** — upload a `.docx` (Word) file and the bot extracts and reads the text content
 - **File Analysis** — reads text-based file attachments (code, CSV, logs, etc.)
+- **GitHub Link Reading** — paste a GitHub URL and the bot fetches and reads the content:
+  - **Repo link** (`github.com/user/repo`) → reads the README
+  - **File link** (`github.com/user/repo/blob/main/file.js`) → reads the file content
+  - **Issue/PR link** (`github.com/user/repo/issues/1`) → reads the issue or pull request
 - **Slash Commands** — 6 built-in commands
 - **Web Search** — built-in web search with results in rich embeds
 - **Rich Embeds** — search and summary results as Discord embeds
@@ -70,15 +76,15 @@ Create a `.env` file in the project root:
 
 ```env
 # Required
-DISCORD_BOT_TOKEN='your-discord-bot-token'
-ANTHROPIC_API_KEY='sk-ant-your-key-here'
-APP_ID='your-application-id'
+DISCORD_BOT_TOKEN=your-discord-bot-token
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+APP_ID=your-application-id
 
 # Optional (for group chat with Ollama bots)
-CHANNEL_ID='your-channel-id'
-WEBHOOK_URL='your-webhook-url'
-WEBHOOK_ID='your-webhook-id'
-OLLAMA_URL='http://localhost:11434/api/chat'
+CHANNEL_ID=your-channel-id
+WEBHOOK_URL=your-webhook-url
+WEBHOOK_ID=your-webhook-id
+OLLAMA_URL=http://localhost:11434/api/chat
 ```
 
 **How to get the optional values:**
@@ -115,6 +121,40 @@ You should see `MRROBOT is online as [botname]#[number]`. The bot now responds t
 | `/summarize [count]` | Summarize last N messages in the channel (default 20, max 50) |
 | `/analyze <image> [question]` | Upload an image for analysis, optionally with a question |
 | `/clear` | Wipe the bot's conversation memory for the current channel |
+
+## Automatic Features (no command needed)
+
+These work by just typing in any channel the bot can see:
+
+| Feature | How to use |
+|---------|-----------|
+| **Chat** | Just type — the bot responds to every message |
+| **Vision** | Drop an image in chat — the bot analyzes it |
+| **PDF reading** | Upload a `.pdf` file — the bot extracts and reads the text |
+| **DOCX reading** | Upload a `.docx` file — the bot extracts and reads the text |
+| **File reading** | Upload any text file (.js, .csv, .log, .json, etc.) — the bot reads it |
+| **GitHub links** | Paste a GitHub URL — the bot fetches and reads the content (repos, files, issues, PRs) |
+| **Memory** | The bot remembers the last 20 messages per channel |
+| **Multi-user** | The bot tracks who is who and addresses the right person |
+
+### GitHub Link Examples
+
+Just paste a link in your message and the bot will automatically fetch the content:
+
+```
+Check out this repo: https://github.com/rainfantry/Discord-Claude-Agent
+```
+→ Bot reads the README and responds about the project
+
+```
+What does this file do? https://github.com/rainfantry/Discord-Claude-Agent/blob/main/src/claude.js
+```
+→ Bot reads the source code and explains it
+
+```
+https://github.com/rainfantry/Discord-Claude-Agent/issues/1
+```
+→ Bot reads the issue and responds
 
 ## Group Chat (Optional — Local Ollama Bots)
 
@@ -169,7 +209,7 @@ node src/group-chat.js
 ```
 src/
   bot.js              — Discord client, event handlers, slash commands
-  claude.js           — Anthropic API, conversation memory, vision, web search
+  claude.js           — Anthropic API, conversation memory, vision, document parsing, GitHub fetching, web search
   deploy-commands.js  — One-time slash command registration
   group-chat.js       — Ollama-powered multi-bot group chat
   personas/           — Bot personality JSON files
@@ -193,6 +233,18 @@ Add special behavior for specific users by referencing their `[Username]` prefix
 ### Model
 
 Change the `model` field in `claude.js` to swap Anthropic models (e.g. `claude-haiku-4-20250514` for cheaper/faster).
+
+## Supported File Types
+
+| Type | Extension | How it works |
+|------|-----------|-------------|
+| Images | `.png`, `.jpg`, `.gif`, `.webp` | Sent to Claude's vision API as base64 |
+| PDF | `.pdf` | Text extracted via `pdf-parse` |
+| Word | `.docx` | Text extracted via `mammoth` |
+| Text files | `.js`, `.py`, `.csv`, `.log`, `.json`, `.txt`, etc. | Read as plain text |
+| GitHub URLs | Links in message text | Fetched automatically (repos, files, issues, PRs) |
+
+All file content is capped at 10,000 characters to stay within API limits.
 
 ## License
 
